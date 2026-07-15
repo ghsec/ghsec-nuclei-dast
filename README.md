@@ -1,4 +1,10 @@
 # nuclei-dast-templates
+
+#### Original repository: 
+
+https://github.com/reewardius/nuclei-dast-templates
+
+
 #### **Crawl and fuzz all HTTP (path,header,cookie,body,query) and their possible values:**
 ```bash
 katana -u http://testphp.vulnweb.com -aff -iqp -j -o katana.jsonl && \
